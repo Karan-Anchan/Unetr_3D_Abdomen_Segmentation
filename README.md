@@ -1,6 +1,6 @@
 # 🏥 Abdomen 3D Segmentation Using UNETR 🚀
 
-This project leverages the power of the **UNETR** model for precise 3D segmentation of abdominal organs, combining state-of-the-art Transformer-based encoders with CNN decoders for unparalleled accuracy.
+This project uses the **UNETR** model for precise 3D segmentation of abdominal organs, combining Transformer-based encoders with CNN decoders for good accuracy.
 
 ![UNETR](unetr.png)
 
