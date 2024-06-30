@@ -1,28 +1,26 @@
+import torch
 from monai.metrics import DiceMetric
 from monai.inferers import sliding_window_inference
-import torch
 
-def evaluate(model, data_loader, device):
+def evaluate(model, val_loader):
     
     """
     Evaluate the model on the validation dataset.
 
     Args:
-        model (torch.nn.Module): The model to evaluate.
-        data_loader (DataLoader): DataLoader for the evaluation data.
-        device (torch.device): Device to run the evaluation on.
+        model (torch.nn.Module): The trained model.
+        val_loader (DataLoader): DataLoader for validation data.
+
+    Returns:
+        float: Average Dice score across all validation samples.
     """
     
     model.eval()
     dice_metric = DiceMetric(include_background=True, reduction="mean")
-    
     with torch.no_grad():
-        for batch_data in data_loader:
-            inputs, labels = batch_data["image"].to(device), batch_data["label"].to(device)
-            outputs = sliding_window_inference(inputs, (96, 96, 96), 4, model)
-            dice_metric(y_pred=outputs, y=labels)
-        
-        metric = dice_metric.aggregate().item()
-        print(f"Evaluation Dice Score: {metric:.4f}")
-    
-    dice_metric.reset()
+        for val_data in val_loader:
+            val_images, val_labels = val_data["image"].cuda(), val_data["label"].cuda()
+            val_outputs = sliding_window_inference(val_images, (128, 128, 128), 4, model)
+            dice_metric(y_pred=val_outputs, y=val_labels)
+
+    return dice_metric.aggregate().item()
