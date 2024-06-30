@@ -2,6 +2,14 @@ import torch
 from monai.networks.nets import UNETR
 
 def create_model():
+    
+    """
+    Create and return a UNETR model instance.
+    
+    Returns:
+        UNETR: A UNETR model instance.
+    """
+    
     model = UNETR(
         in_channels=1,
         out_channels=14,
