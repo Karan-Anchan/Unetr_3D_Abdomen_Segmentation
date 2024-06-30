@@ -94,6 +94,8 @@ python src/evaluate.py --data_dir data/ --model_path models/model_epoch_100.pth
 
 The model achieves an impressive **Dice score** of **0.8027** on the validation set, indicating high accuracy in segmenting abdominal organs.
 
+![LOSS And METRIC Visualization](loss_metric.png)
+
 ![ITK SNAP Visualization](itk_patient.png)
 
 ### 🎨 Visualization
