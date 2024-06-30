@@ -1,0 +1,3 @@
+monai-weekly[nibabel, tqdm, einops, pytorch-ignite, itk, scikit-image, tensorboard, gdown, lmdb, pandas, transformers, mlflow, pynrrd, clearml]
+matplotlib
+torch
