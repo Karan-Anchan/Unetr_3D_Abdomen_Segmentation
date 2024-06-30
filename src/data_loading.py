@@ -7,6 +7,19 @@ from monai.transforms import (
 from monai.data import DataLoader, CacheDataset, load_decathlon_datalist
 
 def get_data_loaders(data_dir, batch_size, num_workers):
+    
+    """
+    Create data loaders for training data.
+    
+    Args:
+        data_dir (str): Path to the dataset directory.
+        batch_size (int): Number of samples per batch.
+        num_workers (int): Number of subprocesses to use for data loading.
+
+    Returns:
+        DataLoader: DataLoader object for the training data.
+    """
+    
     train_transforms = Compose([
         LoadImaged(keys=["image", "label"]),
         EnsureChannelFirstd(keys=["image", "label"]),
