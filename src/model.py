@@ -2,14 +2,7 @@ import torch
 from monai.networks.nets import UNETR
 
 def get_model():
-    
-    """
-    Create and return a UNETR model.
-
-    Returns:
-        torch.nn.Module: UNETR model for 3D segmentation.
-    """
-    
+    """Build the UNETR model for 14-class 3D abdominal CT segmentation."""
     model = UNETR(
         in_channels=1,
         out_channels=14,

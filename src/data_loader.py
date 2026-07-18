@@ -16,20 +16,7 @@ from monai.transforms import (
 )
 
 def get_dataloaders(data_dir, batch_size, split_ratio=0.8):
-    
-    """
-    Create data loaders for training and validation datasets.
-
-    Args:
-        data_dir (str): Path to the directory containing the data.
-        batch_size (int): Number of samples per batch.
-        split_ratio (float): Ratio of data to use for training. Rest will be used for validation.
-
-    Returns:
-        Tuple[DataLoader, DataLoader]: Training and validation data loaders.
-    """
-    
-    # Define transformations
+    """Build train/val MONAI dataloaders with the standard BTCV preprocessing and augmentation."""
     train_transforms = Compose([
         LoadImaged(keys=["image", "label"]),
         EnsureChannelFirstd(keys=["image", "label"]),
@@ -53,7 +40,6 @@ def get_dataloaders(data_dir, batch_size, split_ratio=0.8):
         EnsureTyped(keys=["image", "label"]),
     ])
 
-    # Load data
     images = sorted(glob(os.path.join(data_dir, "imagesTr", "*.nii.gz")))
     labels = sorted(glob(os.path.join(data_dir, "labelsTr", "*.nii.gz")))
 

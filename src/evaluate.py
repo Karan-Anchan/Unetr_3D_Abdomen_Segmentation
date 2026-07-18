@@ -3,18 +3,7 @@ from monai.metrics import DiceMetric
 from monai.inferers import sliding_window_inference
 
 def evaluate(model, val_loader):
-    
-    """
-    Evaluate the model on the validation dataset.
-
-    Args:
-        model (torch.nn.Module): The trained model.
-        val_loader (DataLoader): DataLoader for validation data.
-
-    Returns:
-        float: Average Dice score across all validation samples.
-    """
-    
+    """Run sliding-window inference over the validation set and return the mean Dice score."""
     model.eval()
     dice_metric = DiceMetric(include_background=True, reduction="mean")
     with torch.no_grad():

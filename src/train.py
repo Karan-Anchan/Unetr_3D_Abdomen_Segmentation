@@ -2,32 +2,20 @@ import os
 import torch
 from torch.optim import Adam
 from monai.losses import DiceLoss
-from monai.metrics import DiceMetric
-from monai.inferers import sliding_window_inference
 from src.data_loader import get_dataloaders
 from src.model import get_model
-from src.utils import save_checkpoint, load_checkpoint
+from src.evaluate import evaluate
+from src.utils import save_checkpoint
+
 
 def train(data_dir, epochs=100, batch_size=2, learning_rate=1e-4, model_dir="models"):
-    
-    """
-    Train the UNETR model.
-
-    Args:
-        data_dir (str): Path to the directory containing the data.
-        epochs (int): Number of training epochs.
-        batch_size (int): Number of samples per batch.
-        learning_rate (float): Learning rate for the optimizer.
-        model_dir (str): Directory to save model checkpoints.
-    """
-    
+    """Train UNETR with Dice loss, evaluating and checkpointing every 10 epochs."""
     train_loader, val_loader = get_dataloaders(data_dir, batch_size)
     model = get_model()
     model = model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
     optimizer = Adam(model.parameters(), lr=learning_rate)
     loss_function = DiceLoss(to_onehot_y=True, softmax=True)
-    dice_metric = DiceMetric(include_background=True, reduction="mean")
 
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}/{epochs}")
