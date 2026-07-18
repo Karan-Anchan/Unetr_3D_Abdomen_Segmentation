@@ -1,147 +1,78 @@
-# 🏥 Abdomen 3D Segmentation Using UNETR 🚀
+<div align="center">
 
-This project uses the **UNETR** model for precise 3D segmentation of abdominal organs, combining Transformer-based encoders with CNN decoders for good accuracy.
+# UNETR // 3D ABDOMEN SEGMENTATION
 
-![UNETR](unetr.png)
+**Transformer-encoder UNETR for multi-organ 3D abdominal CT segmentation, in PyTorch + MONAI.**
 
-## 📁 Project Structure
+![topic](https://img.shields.io/badge/medical_imaging-3D_CT_segmentation-7aa2f7?style=flat-square&labelColor=0b0e14)
+![framework](https://img.shields.io/badge/PyTorch_·_MONAI-ffb454?style=flat-square&labelColor=0b0e14)
+![model](https://img.shields.io/badge/model-UNETR-4ec9b0?style=flat-square&labelColor=0b0e14)
+![dice](https://img.shields.io/badge/val_Dice-0.80-4ec9b0?style=flat-square&labelColor=0b0e14)
+![license](https://img.shields.io/badge/license-MIT-8b9080?style=flat-square&labelColor=0b0e14)
 
-```
-UNETR_3D_Abdomen_Segmentation/
-│
-├── data/
-│   ├── imagesTr/
-│   ├── imagesTs/
-│   ├── labelsTr/
-│   └── dataset_0.json
-│
-├── src/
-│   ├── __init__.py
-│   ├── data_loader.py
-│   ├── model.py
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── utils.py
-│   └── visualize.py
-│
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
+</div>
 
-- **`data/`**: Contains training and testing images and labels in `.nii.gz` format.
-- **`src/`**: Source code for the project, organized into modules:
-  - `data_loader.py`: Data loading and preprocessing functions.
-  - `model.py`: Definition of the UNETR model.
-  - `train.py`: Training script for model training.
-  - `evaluate.py`: Script for model evaluation.
-  - `utils.py`: Utility functions for model management.
-  - `visualize.py`: Tools for visualizing predictions.
-- **`requirements.txt`**: Python package dependencies.
-- **`README.md`**: Documentation of the project.
-- **`.gitignore`**: Files and directories to be ignored by Git.
+---
 
-## 🚀 Getting Started
+**UNETR** (UNEt TRansformers) segments 14 abdominal structures from 3D CT volumes. A ViT encoder tokenizes the volume into 16³ patches and processes them with pure self-attention; skip connections at four depths feed a CNN decoder that reconstructs a full-resolution voxel segmentation — a transformer's global receptive field with a U-Net's localization.
 
-Follow these instructions to set up and run the project on your local machine.
+<p align="center"><img src="unetr.png" width="80%" alt="UNETR architecture"/></p>
 
-### 📋 Prerequisites
+## Method
 
-Ensure you have the following installed:
+| Component | Setting |
+| :--- | :--- |
+| Backbone | UNETR — 1 → 14 channels, `128³` input, hidden 768, MLP 3072, 12 heads, instance norm, residual blocks |
+| Preprocessing (MONAI) | RAS orientation, `1.5×1.5×2.0 mm` spacing, HU window `[-200, 200]`, foreground crop |
+| Sampling | `RandCropByPosNegLabel` 128³ (pos/neg balanced), random flip + 90° rotation |
+| Loss / opt | Dice loss (softmax) · Adam `1e-4` |
+| Inference | sliding-window over the full volume, Dice metric |
 
-- Python 3.7+
-- Pip (Python package manager)
+## Results
 
-### 🔧 Installation
+**Validation Dice: 0.8027** across the 14 classes.
 
-1. **Clone the repository**:
+<p align="center">
+<img src="loss_metric.png" width="60%" alt="Training loss and validation Dice over epochs"/>
+</p>
+<p align="center">
+<img src="viz.png" width="80%" alt="Image / ground-truth / prediction for one axial slice"/>
+</p>
+<p align="center">
+<img src="itk_patient.png" width="55%" alt="3D rendering in ITK-SNAP"/>
+</p>
 
-   ```bash
-   git clone https://github.com/yourusername/Abdomen-3D-Segmentation-UNETR.git
-   cd Abdomen-3D-Segmentation-UNETR
-   ```
+Left-to-right in `viz.png`: input CT slice, ground-truth labels, model prediction. `itk_patient.png` shows the predicted labelmap rendered in ITK-SNAP.
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Reproduce
 
-### 🏃‍♂️ Usage
-
-#### Training the Model
-
-To start training the UNETR model:
+Requires a CUDA GPU and the BTCV-style dataset laid out under `data/` (`imagesTr/`, `labelsTr/`, `dataset_0.json`).
 
 ```bash
+pip install -r requirements.txt
 python src/train.py --data_dir data/ --epochs 100 --batch_size 2
-```
-
-- `--data_dir`: Path to the data directory.
-- `--epochs`: Number of training epochs (default is 100).
-- `--batch_size`: Batch size for training (default is 2).
-
-#### Evaluating the Model
-
-Evaluate the model on the validation dataset:
-
-```bash
 python src/evaluate.py --data_dir data/ --model_path models/model_epoch_100.pth
 ```
 
-- `--model_path`: Path to the saved model checkpoint.
+## Repository layout
 
-### 📊 Results
-
-The model achieves an impressive **Dice score** of **0.8027** on the validation set, indicating high accuracy in segmenting abdominal organs.
-
-![LOSS And METRIC Visualization](loss_metric.png)
-
-![ITK SNAP Visualization](itk_patient.png)
-
-### 🎨 Visualization
-
-To visualize the model predictions:
-
-```python
-from src.visualize import visualize
-import nibabel as nib
-
-# Load sample data
-image = nib.load('path_to_image.nii.gz').get_fdata()
-label = nib.load('path_to_label.nii.gz').get_fdata()
-prediction = nib.load('path_to_prediction.nii.gz').get_fdata()
-
-# Visualize a specific slice
-visualize(image, label, prediction, slice_idx=60)
+```
+src/
+  data_loader.py  MONAI transforms + train/val split
+  model.py        UNETR configuration
+  train.py        training loop, Dice loss, checkpointing
+  evaluate.py     sliding-window inference + Dice
+  utils.py        checkpoint save/load
+  visualize.py    image / label / prediction slice viewer
+data/dataset_0.json   dataset manifest
 ```
 
-This script displays the image, ground truth label, and model prediction side by side for a specified slice.
+## Limitations
 
-![SLICE VISUALIZATION](viz.png)
+Single split, no cross-validation or test-set report — the 0.80 Dice is validation-set only. Trained at one resolution/patch size without deep-supervision or ensembling, so it's a solid baseline rather than a tuned result. *A fuller revamp (per-organ Dice, augmentation sweep, proper test split) is planned.*
 
-## 📚 Documentation
+## References
 
-- **`data_loader.py`**: Handles loading and preprocessing of training and validation data.
-- **`model.py`**: Contains the architecture for the UNETR model.
-- **`train.py`**: Manages the training process, including loss calculation and model checkpointing.
-- **`evaluate.py`**: Evaluates the model's performance on the validation dataset using the Dice metric.
-- **`utils.py`**: Utility functions for saving and loading model checkpoints.
-- **`visualize.py`**: Provides visualization functions for model predictions.
+[UNETR: Transformers for 3D Medical Image Segmentation](https://arxiv.org/abs/2103.10504) (Hatamizadeh et al., WACV 2022) · [MONAI](https://monai.io/) · BTCV multi-organ abdominal CT
 
-## 🛠️ Built With
-
-- [MONAI](https://monai.io/) - Medical Open Network for AI
-- [PyTorch](https://pytorch.org/) - Deep learning framework
-- [NumPy](https://numpy.org/) - Numerical computations
-- [Matplotlib](https://matplotlib.org/) - Plotting and visualization
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🎉 Acknowledgments
-
-- The developers of MONAI for providing excellent medical imaging tools.
-- The creators of the UNETR architecture for their innovative approach to medical image segmentation.
-
----
+MIT — see [`LICENSE`](LICENSE).
